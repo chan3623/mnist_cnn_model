@@ -112,36 +112,42 @@ input_method = st.radio(
 processed_img = None
 
 if input_method == "캔버스에 직접 그리기":
-    st.write("아래 검은 바탕에 마우스로 **0~9 사이의 숫자**를 그려주세요.")
+    # 화면을 2개의 컬럼으로 분할하여 UI 겹침 현상 해결
+    col1, col2 = st.columns(2)
 
-    # 그리기 캔버스 위젯
-    canvas_result = st_canvas(
-        fill_color="#000000",  # 채우기 색상
-        stroke_width=18,  # 브러시 두께 (28x28 축소 시 잘 보이도록 두껍게 설정)
-        stroke_color="#FFFFFF",  # 브러시 색상 (MNIST는 배경 검정, 글씨 흰색)
-        background_color="#000000",  # 배경색
-        width=280,  # 캔버스 너비
-        height=280,  # 캔버스 높이
-        drawing_mode="freedraw",
-        key="canvas",
-    )
+    with col1:
+        st.write("마우스로 **0~9 사이의 숫자**를 그려주세요.")
 
-    # 캔버스에 그림이 그려진 경우 이미지 추출
-    if canvas_result.image_data is not None:
-        img_array = canvas_result.image_data.astype(np.uint8)
-        # RGBA 이미지를 Grayscale(L)로 변환
-        pil_img = Image.fromarray(img_array).convert("L")
-        # MNIST 모델에 맞게 28x28 사이즈로 축소 (LANCZOS 필터 사용)
-        pil_img = pil_img.resize((28, 28), Image.Resampling.LANCZOS)
+        # 그리기 캔버스 위젯
+        canvas_result = st_canvas(
+            fill_color="#000000",  # 채우기 색상
+            stroke_width=18,  # 브러시 두께
+            stroke_color="#FFFFFF",  # 브러시 색상
+            background_color="#000000",  # 배경색
+            width=280,  # 캔버스 너비
+            height=280,  # 캔버스 높이
+            drawing_mode="freedraw",
+            key="canvas",
+        )
 
-        # 완전히 비어있는(검은색) 이미지가 아닐 때만 처리 변수에 저장
-        if np.max(np.array(pil_img)) > 0:
-            processed_img = pil_img
-            st.image(
-                pil_img.resize((140, 140)),
-                caption="모델 입력용 크기(28x28)",
-                use_container_width=False,
-            )
+    with col2:
+        st.write("입력 이미지 미리보기")
+        # 캔버스에 그림이 그려진 경우 이미지 추출
+        if canvas_result.image_data is not None:
+            img_array = canvas_result.image_data.astype(np.uint8)
+            # RGBA 이미지를 Grayscale(L)로 변환
+            pil_img = Image.fromarray(img_array).convert("L")
+            # MNIST 모델에 맞게 28x28 사이즈로 축소
+            pil_img = pil_img.resize((28, 28), Image.Resampling.LANCZOS)
+
+            # 완전히 비어있는(검은색) 이미지가 아닐 때만 처리 변수에 저장
+            if np.max(np.array(pil_img)) > 0:
+                processed_img = pil_img
+                st.image(
+                    pil_img.resize((140, 140)),
+                    caption="모델 입력용 크기(28x28)",
+                    use_container_width=False,
+                )
 
 else:
     uploaded_file = st.file_uploader(
@@ -157,6 +163,8 @@ else:
             caption="모델 입력용 크기(28x28)",
             use_container_width=False,
         )
+
+st.divider()
 
 # ------------------------------------------------------------
 # 5. 예측 및 결과 시각화
