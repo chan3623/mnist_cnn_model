@@ -29,6 +29,7 @@ dependencies = [
     "seaborn>=0.13.2",
     "selenium>=4.46.0",
     "streamlit>=1.61.1",
+    "streamlit-drawable-canvas>=0.9.3",
     "tensorflow>=2.21.0",
     "torch>=2.13.0",
     "torchsummary>=1.5.1",
